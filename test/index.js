@@ -78,5 +78,16 @@ describe('引用数据类型测试用例', () => {
         //期待函数运行的结果完全一样
         assert(n1(1,2) === n2(1,2))
     })
+
+    it("检测环引用",()=>{
+        const n1 = {name:'wang'}
+        n1.self = n1
+        const n2 = deepClone(n1)
+        assert(n1 !== n2)
+        assert(n1.name === n2.name)
+        assert(n1.self !== n2.self)
+    })
   
 })
+
+
