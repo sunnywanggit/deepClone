@@ -1,36 +1,47 @@
-//为了避免出现循环拷贝的问题，我们维护一个数组，把所有出现过的对象全部放进去
-let cache = [];
+class DeepClone {
+  constructor() {
+    this.cache = [];
+  }
+  clone(source) {
+    if (source instanceof Object) {
+      let cachedDist = this.findCache(source);
+      if (cachedDist) {
+        return cachedDist;
+      } else {
+        let dist;
+        if (source instanceof Array) {
+          dist = new Array();
+        } else if (source instanceof Function) {
+          dist = function() {
+            return source.apply(this, arguments);
+          };
+        } else if (source instanceof RegExp) {
+          dist = new RegExp(source.source, source.flags);
+        } else if (source instanceof Date) {
+          dist = new Date(source);
+        } else {
+          dist = new Object();
+        }
+        this.cache.push([source, dist]);
+        for (let key in source) {
+          if (source.hasOwnProperty(key)) {
+            dist[key] = this.clone(source[key]);
+          }
+        }
 
-function deepClone(source) {
-  //判断source是不是一个对象
-  if (source instanceof Object) {
-    //如果对象在缓存中，说明我们之前拷贝过这个对象，直接return
-    if (cache.indexOf(source) >= 0) {
-      return source;
-    } else {
-      cache.push(source);
+        return dist;
+      }
     }
-
-    //如果source是一个数组
-    let dist;
-    if (source instanceof Array) {
-      dist = new Array();
-      //如果source是一个函数
-    } else if (source instanceof Function) {
-      dist = function () {
-        return source.apply(this, arguments);
-      };
-    } else {
-      dist = new Object();
-    }
-
-    for (let key in source) {
-      dist[key] = deepClone(source[key]);
-    }
-    return dist;
-  } else {
     return source;
+  }
+  findCache(source) {
+    for (let i = 0; i < this.cache.length; i++) {
+      if (this.cache[i][0] === source) {
+        return this.cache[i][1];
+      }
+    }
+    return undefined;
   }
 }
 
-module.exports = deepClone;
+module.exports = DeepClone;
